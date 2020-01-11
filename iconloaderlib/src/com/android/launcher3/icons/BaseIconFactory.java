@@ -55,6 +55,8 @@ import java.util.Objects;
  */
 public class BaseIconFactory implements AutoCloseable {
 
+    public static final int CONFIG_HINT_NO_WRAP = 0x1000000;
+
     private static final int DEFAULT_WRAPPER_BACKGROUND = Color.WHITE;
     private static final float LEGACY_ICON_SCALE = .7f * (1f / (1 + 2 * getExtraInsetFraction()));
 
@@ -392,7 +394,7 @@ public class BaseIconFactory implements AutoCloseable {
             dr.setBounds(0, 0, 1, 1);
             boolean[] outShape = new boolean[1];
             float scale = getNormalizer().getScale(icon, outIconBounds, dr.getIconMask(), outShape);
-            if (!outShape[0]) {
+            if (!outShape[0] && (icon.getChangingConfigurations() & CONFIG_HINT_NO_WRAP) == 0) {
                 foreground.setDrawable(createScaledDrawable(icon, scale * LEGACY_ICON_SCALE));
             } else {
                 foreground.setDrawable(createScaledDrawable(icon, 1 - getExtraInsetFraction()));
