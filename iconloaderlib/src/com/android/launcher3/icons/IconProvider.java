@@ -132,10 +132,8 @@ public class IconProvider {
             icon = fallback.get();
             if (ATLEAST_T && icon instanceof AdaptiveIconDrawable && td != null) {
                 AdaptiveIconDrawable aid = (AdaptiveIconDrawable) icon;
-                if  (aid.getMonochrome() == null) {
-                    icon = new AdaptiveIconDrawable(aid.getBackground(),
-                            aid.getForeground(), td.loadPaddedDrawable());
-                }
+                icon = new AdaptiveIconDrawable(aid.getBackground(),
+                        aid.getForeground(), td.loadPaddedDrawable());
             }
         }
         return icon;
@@ -178,9 +176,6 @@ public class IconProvider {
                 Drawable drawable = resources.getDrawableForDensity(id, iconDpi, null /* theme */);
                 if (ATLEAST_T && drawable instanceof AdaptiveIconDrawable && td != null) {
                     AdaptiveIconDrawable aid = (AdaptiveIconDrawable) drawable;
-                    if  (aid.getMonochrome() != null) {
-                        return drawable;
-                    }
                     if ("array".equals(td.mResources.getResourceTypeName(td.mResID))) {
                         TypedArray ta = td.mResources.obtainTypedArray(td.mResID);
                         int monoId = ta.getResourceId(IconProvider.getDay(), ID_NULL);
@@ -188,6 +183,9 @@ public class IconProvider {
                         return monoId == ID_NULL ? drawable
                                 : new AdaptiveIconDrawable(aid.getBackground(), aid.getForeground(),
                                         new ThemeData(td.mResources, monoId).loadPaddedDrawable());
+                    }
+                    if  (aid.getMonochrome() != null) {
+                        return drawable;
                     }
                 }
                 return drawable;
