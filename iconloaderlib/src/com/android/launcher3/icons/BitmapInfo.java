@@ -20,6 +20,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.UserHandle;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
@@ -66,6 +67,12 @@ public class BitmapInfo {
     public @BitmapInfoFlags int flags;
     private BitmapInfo badgeInfo;
 
+    @Nullable
+    private UserHandle mUserHandle;
+
+    @Nullable
+    private Drawable mUserBadge;
+
     public BitmapInfo(Bitmap icon, int color) {
         this.icon = icon;
         this.color = color;
@@ -89,11 +96,19 @@ public class BitmapInfo {
         return result;
     }
 
+    public BitmapInfo withUser(@Nullable UserHandle user, @NonNull BaseIconFactory iconFactory) {
+        BitmapInfo result = clone();
+        result.setUser(user, iconFactory);
+        return result;
+    }
+
     protected BitmapInfo copyInternalsTo(BitmapInfo target) {
         target.mMono = mMono;
         target.mWhiteShadowLayer = mWhiteShadowLayer;
         target.flags = flags;
         target.badgeInfo = badgeInfo;
+        target.mUserHandle = mUserHandle;
+        target.mUserBadge = mUserBadge;
         return target;
     }
 
@@ -105,6 +120,15 @@ public class BitmapInfo {
     public void setMonoIcon(Bitmap mono, BaseIconFactory iconFactory) {
         mMono = mono;
         mWhiteShadowLayer = iconFactory.getWhiteShadowLayer();
+    }
+
+    public void setUser(@Nullable UserHandle user, @NonNull BaseIconFactory iconFactory) {
+        mUserHandle = user;
+        if (user != null) {
+            mUserBadge = iconFactory.getBadgeForUser(mUserHandle);
+        } else {
+            mUserBadge = null;
+        }
     }
 
     /**
@@ -128,6 +152,8 @@ public class BitmapInfo {
     public Bitmap getMono() {
         return mMono;
     }
+
+    public UserHandle getUser() { return mUserHandle; }
 
     /**
      * Creates a drawable for the provided BitmapInfo
@@ -183,6 +209,11 @@ public class BitmapInfo {
         }
         if (skipUserBadge) {
             return null;
+        } else if (mUserBadge != null) {
+            // We use a copy of the badge, or changes will affect everywhere it is used;
+            // e.g., shortcuts/widget user badges are very small, and these could affect
+            // regular launcher icons, and the other way around.
+            return mUserBadge.getConstantState().newDrawable().mutate();
         } else if ((flags & FLAG_INSTANT) != 0) {
             return new UserBadgeDrawable(context, R.drawable.ic_instant_app_badge,
                     R.color.badge_tint_instant, isThemed);

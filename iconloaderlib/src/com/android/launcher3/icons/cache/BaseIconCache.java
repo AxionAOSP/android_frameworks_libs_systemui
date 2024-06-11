@@ -406,12 +406,12 @@ public abstract class BaseIconCache {
 
     @NonNull
     public synchronized BitmapInfo getDefaultIcon(@NonNull final UserHandle user) {
-        if (mDefaultIcon == null) {
-            try (BaseIconFactory li = getIconFactory()) {
+        try (BaseIconFactory li = getIconFactory()) {
+            if (mDefaultIcon == null) {
                 mDefaultIcon = li.makeDefaultIcon();
             }
+            return mDefaultIcon.withUser(user, li);
         }
-        return mDefaultIcon.withFlags(getUserFlagOpLocked(user));
     }
 
     @NonNull
@@ -737,7 +737,9 @@ public abstract class BaseIconCache {
             }
         }
         entry.bitmap.flags = c.getInt(IconDB.INDEX_FLAGS);
-        entry.bitmap = entry.bitmap.withFlags(getUserFlagOpLocked(cacheKey.user));
+        try (BaseIconFactory factory = getIconFactory()) {
+            entry.bitmap = entry.bitmap.withUser(cacheKey.user, factory);
+        }
         return entry.bitmap != null;
     }
 
