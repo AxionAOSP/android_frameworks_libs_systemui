@@ -61,8 +61,12 @@ public class ColorScheme {
     private final TonalPalette mNeutral2;
     private final Hct mProposedSeedHct;
 
-
     public ColorScheme(@ColorInt int seed, boolean isDark, Style style, double contrastLevel) {
+        this(seed, isDark, style, contrastLevel, 1f, 1f, false, null);
+    }
+
+    public ColorScheme(@ColorInt int seed, boolean isDark, Style style, double contrastLevel,
+            float luminanceFactor, float chromaFactor, boolean tintBackground, Integer bgSeed) {
         this.mSeed = seed;
         this.mIsDark = isDark;
         this.mStyle = style;
@@ -75,6 +79,15 @@ public class ColorScheme {
                                 && mProposedSeedHct.getChroma() < 5
                                 ? GOOGLE_BLUE
                                 : seed));
+
+        if (bgSeed == null) bgSeed = seed;
+        Hct bgSeedHct = Hct.fromInt(
+                bgSeed == Color.TRANSPARENT
+                        ? GOOGLE_BLUE
+                        : (style != Style.CONTENT
+                                && mProposedSeedHct.getChroma() < 5
+                                ? GOOGLE_BLUE
+                                : bgSeed));
 
         mMaterialScheme = switch (style) {
             case SPRITZ -> new SchemeNeutral(seedHct, isDark, contrastLevel);
@@ -91,10 +104,27 @@ public class ColorScheme {
             default -> throw new IllegalArgumentException("Unknown style: " + style);
         };
 
-        mAccent1 = new TonalPalette(mMaterialScheme.primaryPalette);
+        final DynamicScheme bgScheme = switch (style) {
+            case SPRITZ -> new SchemeNeutral(bgSeedHct, isDark, contrastLevel);
+            case TONAL_SPOT -> new SchemeTonalSpot(bgSeedHct, isDark, contrastLevel);
+            case VIBRANT -> new SchemeVibrant(bgSeedHct, isDark, contrastLevel);
+            case EXPRESSIVE -> new SchemeExpressive(bgSeedHct, isDark, contrastLevel);
+            case RAINBOW -> new SchemeRainbow(bgSeedHct, isDark, contrastLevel);
+            case FRUIT_SALAD -> new SchemeFruitSalad(bgSeedHct, isDark, contrastLevel);
+            case CONTENT -> new SchemeContent(bgSeedHct, isDark, contrastLevel);
+            case MONOCHROMATIC -> new SchemeMonochrome(bgSeedHct, isDark, contrastLevel);
+            // SystemUI Schemes
+            case CLOCK -> new SchemeClock(bgSeedHct, isDark, contrastLevel);
+            case CLOCK_VIBRANT -> new SchemeClockVibrant(bgSeedHct, isDark, contrastLevel);
+            default -> throw new IllegalArgumentException("Unknown style: " + style);
+        };
+
+        mAccent1 = new TonalPalette(mMaterialScheme.primaryPalette, luminanceFactor, chromaFactor);
         mAccent2 = new TonalPalette(mMaterialScheme.secondaryPalette);
         mAccent3 = new TonalPalette(mMaterialScheme.tertiaryPalette);
-        mNeutral1 = new TonalPalette(mMaterialScheme.neutralPalette);
+        mNeutral1 = new TonalPalette(bgScheme.neutralPalette,
+                tintBackground ? luminanceFactor : 1f,
+                tintBackground ? chromaFactor : 1f);
         mNeutral2 = new TonalPalette(mMaterialScheme.neutralVariantPalette);
     }
 
