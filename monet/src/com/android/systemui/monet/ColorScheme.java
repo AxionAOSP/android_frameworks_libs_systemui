@@ -65,11 +65,12 @@ public class ColorScheme {
     private final Hct mProposedSeedHct;
 
     public ColorScheme(@ColorInt int seed, boolean isDark, @Style.Type int style, double contrastLevel) {
-        this(seed, isDark, style, contrastLevel, 1f, 1f, false, null);
+        this(seed, isDark, style, contrastLevel, 1f, 1f, false, false, null);
     }
 
     public ColorScheme(@ColorInt int seed, boolean isDark, @Style.Type int style, double contrastLevel,
-            float luminanceFactor, float chromaFactor, boolean tintBackground, Integer bgSeed) {
+            float luminanceFactor, float chromaFactor, boolean wholePalette,
+            boolean tintBackground, Integer bgSeed) {
         this.mSeed = seed;
         this.mIsDark = isDark;
         this.mStyle = style;
@@ -123,13 +124,17 @@ public class ColorScheme {
         };
 
         mAccent1 = new TonalPalette(mMaterialScheme.primaryPalette, luminanceFactor, chromaFactor);
-        mAccent2 = new TonalPalette(mMaterialScheme.secondaryPalette);
-        mAccent3 = new TonalPalette(mMaterialScheme.tertiaryPalette);
+        mAccent2 = new TonalPalette(mMaterialScheme.secondaryPalette,
+                wholePalette ? luminanceFactor : 1f,
+                wholePalette ? chromaFactor : 1f);
+        mAccent3 = new TonalPalette(mMaterialScheme.tertiaryPalette, luminanceFactor, chromaFactor);
         mNeutral1 = new TonalPalette(bgScheme.neutralPalette,
                 tintBackground ? luminanceFactor : 1f,
                 tintBackground ? chromaFactor : 1f);
-        mNeutral2 = new TonalPalette(mMaterialScheme.neutralVariantPalette);
-        mError = new TonalPalette(mMaterialScheme.errorPalette);
+        mNeutral2 = new TonalPalette(bgScheme.neutralVariantPalette,
+                tintBackground && wholePalette ? luminanceFactor : 1f,
+                tintBackground && wholePalette ? chromaFactor : 1f);
+        mError = new TonalPalette(mMaterialScheme.errorPalette, luminanceFactor, chromaFactor);
     }
 
     public ColorScheme(@ColorInt int seed, boolean darkTheme) {
