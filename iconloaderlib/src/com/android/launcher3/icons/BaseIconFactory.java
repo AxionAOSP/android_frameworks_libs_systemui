@@ -234,18 +234,19 @@ public class BaseIconFactory implements AutoCloseable {
             // Need to convert to Adaptive Icon with insets to avoid cropping.
             tempIcon = createShapedAdaptiveIcon(bitmapDrawable.getBitmap());
         }
-        AdaptiveIconDrawable adaptiveIcon = normalizeAndWrapToAdaptiveIcon(tempIcon, null, scale);
-        Bitmap bitmap = createIconBitmap(adaptiveIcon, scale[0],
+        tempIcon = normalizeAndWrapToAdaptiveIcon(tempIcon, null, scale);
+        Bitmap bitmap = createIconBitmap(tempIcon, scale[0],
                 options == null ? MODE_WITH_SHADOW : options.mGenerationMode);
 
         int color = (options != null && options.mExtractedColor != null)
                 ? options.mExtractedColor : mColorExtractor.findDominantColorByHue(bitmap);
         BitmapInfo info = BitmapInfo.of(bitmap, color);
 
-        if (adaptiveIcon instanceof BitmapInfo.Extender extender) {
+        if (tempIcon instanceof BitmapInfo.Extender extender) {
             info = extender.getExtendedInfo(bitmap, color, this, scale[0]);
-        } else if (IconProvider.ATLEAST_T && mThemeController != null && adaptiveIcon != null) {
-            info.setThemedBitmap(mThemeController.createThemedBitmap(adaptiveIcon, info, this));
+        } else if (IconProvider.ATLEAST_T && mThemeController != null && tempIcon != null
+                && tempIcon instanceof AdaptiveIconDrawable) {
+            info.setThemedBitmap(mThemeController.createThemedBitmap((AdaptiveIconDrawable)tempIcon, info, this));
         }
         info = info.withFlags(getBitmapFlagOp(options));
         return info;
@@ -315,18 +316,21 @@ public class BaseIconFactory implements AutoCloseable {
     }
 
     @Nullable
-    protected AdaptiveIconDrawable normalizeAndWrapToAdaptiveIcon(@Nullable Drawable icon,
+    protected Drawable normalizeAndWrapToAdaptiveIcon(@Nullable Drawable icon,
             @Nullable final RectF outIconBounds, @NonNull final float[] outScale) {
         if (icon == null) {
             return null;
         }
 
-        AdaptiveIconDrawable adaptiveIcon;
         float scale;
-        adaptiveIcon = wrapToAdaptiveIcon(icon, outIconBounds);
-        scale = getNormalizer().getScale(adaptiveIcon, outIconBounds, null, null);
+        if ((icon.getChangingConfigurations() & CONFIG_HINT_NO_WRAP) == 0) {
+            AdaptiveIconDrawable adaptiveIcon;
+            adaptiveIcon = wrapToAdaptiveIcon(icon, outIconBounds);
+            icon = adaptiveIcon;
+        }
+        scale = getNormalizer().getScale(icon, outIconBounds, null, null);
         outScale[0] = scale;
-        return adaptiveIcon;
+        return icon;
     }
 
     /**
@@ -361,11 +365,7 @@ public class BaseIconFactory implements AutoCloseable {
             dr.setBounds(0, 0, 1, 1);
             boolean[] outShape = new boolean[1];
             float scale = getNormalizer().getScale(icon, outIconBounds, dr.getIconMask(), outShape);
-            if (!outShape[0] && (icon.getChangingConfigurations() & CONFIG_HINT_NO_WRAP) == 0) {
-                // If there is an alpha on the icon, apply it to the wrapper instead.
-                dr.setAlpha(icon.getAlpha());
-                icon.setAlpha(0xFF);
-
+            if (!outShape[0]) {
                 foreground.setDrawable(createScaledDrawable(icon, scale * LEGACY_ICON_SCALE));
             } else {
                 foreground.setDrawable(createScaledDrawable(icon, 1 - getExtraInsetFraction()));
