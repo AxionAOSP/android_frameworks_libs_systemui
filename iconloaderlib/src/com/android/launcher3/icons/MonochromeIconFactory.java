@@ -32,6 +32,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 
 import androidx.annotation.WorkerThread;
@@ -101,9 +102,14 @@ public class MonochromeIconFactory extends Drawable {
      */
     @WorkerThread
     public Drawable wrap(AdaptiveIconDrawable icon, Path shapePath, Float iconScale) {
+        float inset = AdaptiveIconDrawable.getExtraInsetFraction() /
+                (1 + 2 * AdaptiveIconDrawable.getExtraInsetFraction());
+
+        Drawable bg = icon.getBackground();
+        Drawable fg = new InsetDrawable(icon.getForeground(), inset);
         mFlatCanvas.drawColor(Color.BLACK);
-        drawDrawable(icon.getBackground());
-        drawDrawable(icon.getForeground());
+        drawDrawable(bg);
+        drawDrawable(fg);
         generateMono();
         return new ClippedMonoDrawable(this, shapePath, iconScale);
     }

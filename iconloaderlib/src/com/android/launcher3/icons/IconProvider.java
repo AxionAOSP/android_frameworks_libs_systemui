@@ -311,7 +311,7 @@ public class IconProvider {
                 return null;
             }
             Drawable d = mResources.getDrawable(mResID).mutate();
-            d = new InsetDrawable(d, .2f);
+            d = new InsetDrawable(d, .3f);
             float inset = getExtraInsetFraction() / (1 + 2 * getExtraInsetFraction());
             Drawable fg = new InsetDrawable(d, inset);
             return fg;
