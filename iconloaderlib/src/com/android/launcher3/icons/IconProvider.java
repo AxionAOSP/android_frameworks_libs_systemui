@@ -35,6 +35,7 @@ import android.content.pm.ComponentInfo;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -46,6 +47,7 @@ import android.os.Handler;
 import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.provider.AlarmClock;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -75,8 +77,8 @@ public class IconProvider implements ResourceBasedOverride {
     private static final String SYSTEM_STATE_SEPARATOR = " ";
 
     protected final Context mContext;
-    private final ComponentName mCalendar;
-    private final ComponentName mClock;
+    protected final ComponentName mCalendar;
+    protected final ComponentName mClock;
 
     @NonNull
     protected String mSystemState = "";
@@ -86,8 +88,29 @@ public class IconProvider implements ResourceBasedOverride {
 
     public IconProvider(Context context) {
         mContext = context;
-        mCalendar = parseComponentOrNull(context, R.string.calendar_component_name);
-        mClock = parseComponentOrNull(context, R.string.clock_component_name);
+        mCalendar = getSystemCalendar();
+        mClock = getSystemClock();
+    }
+
+    protected ComponentName getSystemCalendar() {
+        Intent calendarIntent = new Intent(Intent.ACTION_MAIN);
+        calendarIntent.addCategory(Intent.CATEGORY_APP_CALENDAR);
+        PackageManager pm = mContext.getPackageManager();
+        ResolveInfo ri = pm.resolveActivity(calendarIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (ri != null && ri.activityInfo != null) {
+            return new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name);
+        }
+        return null;
+    }
+
+    protected ComponentName getSystemClock() {
+        Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
+        PackageManager pm = mContext.getPackageManager();
+        ResolveInfo ri = pm.resolveActivity(clockIntent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (ri != null && ri.activityInfo != null) {
+            return new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name);
+        }
+        return null;
     }
 
     /**
