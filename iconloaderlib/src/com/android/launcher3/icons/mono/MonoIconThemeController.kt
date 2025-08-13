@@ -49,6 +49,8 @@ class MonoIconThemeController(
     private val colorProvider: (Context) -> IntArray = ThemedIconDrawable.Companion::getColors
 ) : IconThemeController {
 
+    val inset = AdaptiveIconDrawable.getExtraInsetFraction() / (1 + 2 * AdaptiveIconDrawable.getExtraInsetFraction())
+
     override val themeID = "with-theme"
 
     override fun createThemedBitmap(
@@ -68,7 +70,7 @@ class MonoIconThemeController(
             )
         if (mono != null) {
             return MonoThemedBitmap(
-                factory.createIconBitmap(mono, ICON_VISIBLE_AREA_FACTOR, MODE_ALPHA),
+                factory.createIconBitmap(paddedDrawable(mono), ICON_VISIBLE_AREA_FACTOR, MODE_ALPHA),
                 factory.whiteShadowLayer,
                 colorProvider,
             )
@@ -97,6 +99,12 @@ class MonoIconThemeController(
             return MonochromeIconFactory(info.icon.width).wrap(base, shapePath, iconScale)
         }
         return null
+    }
+    
+    fun paddedDrawable(dr: Drawable): Drawable {
+        var d = dr.mutate()
+        d = InsetDrawable(d, inset)
+        return d
     }
 
     override fun decode(

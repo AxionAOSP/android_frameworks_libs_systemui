@@ -342,10 +342,8 @@ public class IconProvider implements ResourceBasedOverride {
                 return null;
             }
             Drawable d = mResources.getDrawable(mResID).mutate();
-            d = new InsetDrawable(d, .28f);
-            float inset = getExtraInsetFraction() / (1 + 2 * getExtraInsetFraction());
-            Drawable fg = new InsetDrawable(d, inset);
-            return fg;
+            d = new InsetDrawable(d, 0.28f);
+            return d;
         }
     }
 

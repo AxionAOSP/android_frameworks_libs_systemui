@@ -102,14 +102,9 @@ public class MonochromeIconFactory extends Drawable {
      */
     @WorkerThread
     public Drawable wrap(AdaptiveIconDrawable icon, Path shapePath, Float iconScale) {
-        float inset = AdaptiveIconDrawable.getExtraInsetFraction() /
-                (1 + 2 * AdaptiveIconDrawable.getExtraInsetFraction());
-
-        Drawable bg = icon.getBackground();
-        Drawable fg = new InsetDrawable(icon.getForeground(), inset);
         mFlatCanvas.drawColor(Color.BLACK);
-        drawDrawable(bg);
-        drawDrawable(fg);
+        drawDrawable(icon.getBackground());
+        drawDrawable(icon.getForeground());
         generateMono();
         return new ClippedMonoDrawable(this, shapePath, iconScale);
     }
