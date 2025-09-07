@@ -73,6 +73,8 @@ public class IconProvider implements ResourceBasedOverride {
     public static final boolean ATLEAST_T = BuildCompat.isAtLeastT();
 
     private static final String ICON_METADATA_KEY_PREFIX = ".dynamic_icons";
+    private static final String ICON_CALENDAR_ACTIVITY = "com.android.calendar.AllInOneActivity";
+    private static final String ICON_CLOCK_ACTIVITY = "com.android.deskclock.DeskClockApplication";
 
     private static final String SYSTEM_STATE_SEPARATOR = " ";
 
@@ -90,6 +92,8 @@ public class IconProvider implements ResourceBasedOverride {
         mContext = context;
         mCalendar = getSystemCalendar();
         mClock = getSystemClock();
+        Log.d(TAG, "Calendar component: " + (mCalendar != null ? mCalendar.flattenToString() : "null"));
+        Log.d(TAG, "Clock component: " + (mClock != null ? mClock.flattenToString() : "null"));
     }
 
     protected ComponentName getSystemCalendar() {
@@ -98,7 +102,7 @@ public class IconProvider implements ResourceBasedOverride {
         PackageManager pm = mContext.getPackageManager();
         ResolveInfo ri = pm.resolveActivity(calendarIntent, PackageManager.MATCH_DEFAULT_ONLY);
         if (ri != null && ri.activityInfo != null) {
-            return new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name);
+            return new ComponentName(ri.activityInfo.packageName, ICON_CALENDAR_ACTIVITY);
         }
         return null;
     }
@@ -108,7 +112,7 @@ public class IconProvider implements ResourceBasedOverride {
         PackageManager pm = mContext.getPackageManager();
         ResolveInfo ri = pm.resolveActivity(clockIntent, PackageManager.MATCH_DEFAULT_ONLY);
         if (ri != null && ri.activityInfo != null) {
-            return new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name);
+            return new ComponentName(ri.activityInfo.packageName, ICON_CLOCK_ACTIVITY);
         }
         return null;
     }
