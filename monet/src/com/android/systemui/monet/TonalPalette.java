@@ -30,7 +30,7 @@ public class TonalPalette {
     public final List<Integer> allShades;
     public final Map<Integer, Integer> allShadesMapped;
 
-    TonalPalette(com.google.ux.material.libmonet.palettes.TonalPalette materialTonalPalette) {
+    public TonalPalette(com.google.ux.material.libmonet.palettes.TonalPalette materialTonalPalette) {
         this.mMaterialTonalPalette = materialTonalPalette;
         this.allShades = SHADE_KEYS.stream().map(key -> getAtTone(key.floatValue())).collect(
                 Collectors.toList());
