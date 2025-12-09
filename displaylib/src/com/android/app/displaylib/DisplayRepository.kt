@@ -175,8 +175,16 @@ constructor(
     // This is necessary because there might be multiple displays, and we could
     // have missed events for those added before this process or flow started.
     // Note it causes a binder call from the main thread (it's traced).
+    // Filter out freeform displays as they don't have window recomposers and
+    // SystemUI components like MultiDisplaySystemEventChipAnimationController will crash
+    // when trying to create Compose views on them.
     private val initialDisplays: Set<Display> =
-        traceSection("$TAG#initialDisplays") { displayManager.displays?.toSet() ?: emptySet() }
+        traceSection("$TAG#initialDisplays") { 
+            displayManager.displays
+                ?.filter { !displayManager.isFreeformDisplayId(it.displayId) }
+                ?.toSet() 
+                ?: emptySet() 
+        }
     private val initialDisplayIds = initialDisplays.map { display -> display.displayId }.toSet()
 
     /** Propagate to the listeners only enabled displays */
@@ -205,7 +213,12 @@ constructor(
      */
     private val enabledDisplays: StateFlow<Set<Display>> =
         enabledDisplayIds
-            .mapElementsLazily { displayId -> getDisplayFromDisplayManager(displayId) }
+            .mapElementsLazily { displayId -> 
+                // Filter out freeform displays as they don't have window recomposers
+                getDisplayFromDisplayManager(displayId)?.takeIf { 
+                    !displayManager.isFreeformDisplayId(displayId)
+                }
+            }
             .onEach {
                 if (it.isEmpty()) Log.wtf(TAG, "No enabled displays. This should never happen.")
             }
