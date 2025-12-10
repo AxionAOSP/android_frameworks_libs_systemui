@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.content.res.ThemeEngine;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapShader;
@@ -221,8 +222,24 @@ public class BaseIconFactory implements AutoCloseable {
             // Need to convert to Adaptive Icon with insets to avoid cropping.
             tempIcon = createShapedAdaptiveIcon(bitmapDrawable.getBitmap());
         }
-        AdaptiveIconDrawable adaptiveIcon = normalizeAndWrapToAdaptiveIcon(tempIcon, scale);
-        Bitmap bitmap = createIconBitmap(adaptiveIcon, scale[0],
+        Drawable finalIcon = tempIcon;
+        boolean useOriginal = false;
+        try {
+            ThemeEngine engine = ThemeEngine.getInstance(mContext);
+            if (engine != null && engine.hasActiveIconPack()) {
+                useOriginal = true;
+                scale[0] = 1f;
+            }
+        } catch (Throwable t) {
+        }
+
+        if (!useOriginal) {
+             finalIcon = normalizeAndWrapToAdaptiveIcon(tempIcon, scale);
+        }
+        
+        AdaptiveIconDrawable adaptiveIcon = (finalIcon instanceof AdaptiveIconDrawable) ? (AdaptiveIconDrawable) finalIcon : null;
+
+        Bitmap bitmap = createIconBitmap(finalIcon, scale[0],
                 options == null ? MODE_WITH_SHADOW : options.mGenerationMode);
         int color = (options != null && options.mExtractedColor != null)
                 ? options.mExtractedColor : ColorExtractor.findDominantColorByHue(bitmap);

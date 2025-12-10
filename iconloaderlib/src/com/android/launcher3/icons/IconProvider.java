@@ -33,6 +33,7 @@ import android.content.pm.ComponentInfo;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -280,8 +281,17 @@ public class IconProvider {
      * and system-version.
      */
     public void updateSystemState() {
+        String iconPackState = "";
+        try {
+            // Include icon pack status in system state for cache invalidation
+            String packPkg = mContext.getResources().getIconPackPackage();
+            if (packPkg != null && !packPkg.isEmpty()) {
+                iconPackState = "," + packPkg;
+            }
+        } catch (Exception ignored) { }
+        
         mSystemState = mContext.getResources().getConfiguration().getLocales().toLanguageTags()
-                + "," + Build.VERSION.SDK_INT;
+                + "," + Build.VERSION.SDK_INT + iconPackState;
     }
 
     /**
@@ -335,21 +345,35 @@ public class IconProvider {
 
         private final IconChangeListener mCallback;
 
+        private static final String ACTION_THEME_CHANGED = 
+                "android.intent.action.THEME_ENGINE_CHANGED";
+
         IconChangeReceiver(IconChangeListener callback, Handler handler) {
             mCallback = callback;
-            if (mCalendar != null || mClock != null) {
-                final IntentFilter filter = new IntentFilter(ACTION_TIMEZONE_CHANGED);
+            
+            final IntentFilter filter = new IntentFilter();
+
+            filter.addAction(ACTION_THEME_CHANGED);
+            
+           if (mCalendar != null || mClock != null) {
+                filter.addAction(ACTION_TIMEZONE_CHANGED);
                 if (mCalendar != null) {
                     filter.addAction(Intent.ACTION_TIME_CHANGED);
                     filter.addAction(ACTION_DATE_CHANGED);
                 }
-                mContext.registerReceiver(this, filter, null, handler);
             }
+            mContext.registerReceiver(this, filter, null, handler, Context.RECEIVER_EXPORTED);
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
+                case ACTION_THEME_CHANGED:
+                    for (UserHandle user
+                            : context.getSystemService(UserManager.class).getUserProfiles()) {
+                        mCallback.onAppIconChanged(null, user);
+                    }
+                    break;
                 case ACTION_TIMEZONE_CHANGED:
                     if (mClock != null) {
                         mCallback.onAppIconChanged(mClock.getPackageName(), Process.myUserHandle());
