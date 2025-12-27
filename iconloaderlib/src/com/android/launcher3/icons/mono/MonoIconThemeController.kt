@@ -34,6 +34,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.InsetDrawable
 import android.os.Build
 import com.android.launcher3.Flags
+import com.android.launcher3.icons.AxIconsHelper
 import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BaseIconFactory.MODE_ALPHA
 import com.android.launcher3.icons.BitmapInfo
@@ -58,6 +59,9 @@ class MonoIconThemeController(
         factory: BaseIconFactory,
         sourceHint: SourceHint?,
     ): ThemedBitmap? {
+        val context = factory.context
+        val isAxionStyle = AxIconsHelper.isAxIconsEnabled(context)
+
         val mono =
             getMonochromeDrawable(
                 icon,
@@ -65,6 +69,8 @@ class MonoIconThemeController(
                 factory.getShapePath(icon, Rect(0, 0, info.icon.width, info.icon.height)),
                 sourceHint?.isFileDrawable ?: false,
                 shouldForceThemeIcon,
+                context,
+                isAxionStyle
             )
         if (mono != null) {
             return MonoThemedBitmap(
@@ -87,13 +93,25 @@ class MonoIconThemeController(
         shapePath: Path,
         isFileDrawable: Boolean,
         shouldForceThemeIcon: Boolean,
+        context: Context,
+        isAxionStyle: Boolean
     ): Drawable? {
         val mono = base.monochrome
         if (mono != null) {
-            return ClippedMonoDrawable(mono, shapePath)
+            val clipped = ClippedMonoDrawable(mono, shapePath)
+            if (isAxionStyle) {
+                val padding = AxIconsHelper.getPaddingInPixels(context)
+                return InsetDrawable(clipped, padding)
+            }
+            return clipped
         }
         if (!isFileDrawable) {
-            return MonochromeIconFactory(info.icon.width).wrap(base, shapePath)
+            val d = MonochromeIconFactory(info.icon.width).wrap(base, shapePath)
+            if (isAxionStyle) {
+                val padding = AxIconsHelper.getPaddingInPixels(context)
+                return InsetDrawable(d, padding)
+            }
+            return d
         }
         return null
     }

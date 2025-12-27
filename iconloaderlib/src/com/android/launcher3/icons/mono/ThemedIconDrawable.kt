@@ -22,6 +22,7 @@ import android.graphics.BlendModeColorFilter
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
+import com.android.launcher3.icons.AxIconsHelper
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.R
@@ -87,10 +88,18 @@ class ThemedIconDrawable(constantState: ThemedConstantState) :
         @JvmStatic
         fun getColors(context: Context): IntArray {
             val res = context.resources
-            return intArrayOf(
-                res.getColor(R.color.themed_icon_background_color),
-                res.getColor(R.color.themed_icon_color),
-            )
+            
+            return if (AxIconsHelper.isAxIconsEnabled(context)) {
+                intArrayOf(
+                    res.getColor(R.color.ax_themed_icon_background_color),
+                    res.getColor(R.color.ax_themed_icon_color),
+                )
+            } else {
+                intArrayOf(
+                    res.getColor(R.color.themed_icon_background_color),
+                    res.getColor(R.color.themed_icon_color),
+                )
+            }
         }
     }
 }

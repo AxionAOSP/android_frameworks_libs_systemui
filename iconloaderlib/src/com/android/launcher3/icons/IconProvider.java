@@ -228,7 +228,7 @@ public class IconProvider {
                         ta.recycle();
                         return monoId == ID_NULL ? drawable
                                 : new AdaptiveIconDrawable(aid.getBackground(), aid.getForeground(),
-                                        new ThemeData(td.mResources, monoId).loadPaddedDrawable());
+                                        new ThemeData(td.mResources, monoId, mContext).loadPaddedDrawable());
                     }
                 }
                 return drawable;
@@ -323,10 +323,12 @@ public class IconProvider {
 
         final Resources mResources;
         final int mResID;
+        final Context mContext;
 
-        public ThemeData(Resources resources, int resID) {
+        public ThemeData(Resources resources, int resID, Context context) {
             mResources = resources;
             mResID = resID;
+            mContext = context;
         }
 
         Drawable loadPaddedDrawable() {
@@ -334,7 +336,14 @@ public class IconProvider {
                 return null;
             }
             Drawable d = mResources.getDrawable(mResID).mutate();
-            d = new InsetDrawable(d, .2f);
+            
+            if (AxIconsHelper.isAxIconsEnabled(mContext)) {
+                int padding = AxIconsHelper.getPaddingInPixels(mContext);
+                d = new InsetDrawable(d, padding);
+            } else {
+                d = new InsetDrawable(d, .2f);
+            }
+            
             float inset = getExtraInsetFraction() / (1 + 2 * getExtraInsetFraction());
             Drawable fg = new InsetDrawable(d, inset);
             return fg;

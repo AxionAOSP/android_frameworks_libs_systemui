@@ -146,6 +146,11 @@ public class BaseIconFactory implements AutoCloseable {
         return mIconBitmapSize;
     }
 
+    @NonNull
+    public Context getContext() {
+        return mContext;
+    }
+
     @SuppressWarnings("deprecation")
     public BitmapInfo createIconBitmap(Intent.ShortcutIconResource iconRes) {
         try {
