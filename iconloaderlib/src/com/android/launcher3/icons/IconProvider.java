@@ -216,7 +216,7 @@ public class IconProvider {
                         ta.recycle();
                         return monoId == ID_NULL ? drawable
                                 : new AdaptiveIconDrawable(aid.getBackground(), aid.getForeground(),
-                                        new ThemeData(td.mResources, monoId).loadPaddedDrawable());
+                                        new ThemeData(td.mResources, monoId, mContext).loadPaddedDrawable());
                     }
                 }
                 return drawable;
@@ -269,8 +269,15 @@ public class IconProvider {
      * and system-version.
      */
     public void updateSystemState() {
+        String iconPackState = "";
+        try {
+            String packPkg = mContext.getResources().getIconPackPackage();
+            if (packPkg != null && !packPkg.isEmpty()) {
+                iconPackState = "," + packPkg;
+            }
+        } catch (Exception ignored) { }
         mSystemState = mContext.getResources().getConfiguration().getLocales().toLanguageTags()
-                + "," + Build.VERSION.SDK_INT;
+                + "," + Build.VERSION.SDK_INT + iconPackState;
     }
 
     /**
@@ -295,10 +302,16 @@ public class IconProvider {
 
         final Resources mResources;
         final int mResID;
+        final Context mContext;
 
         public ThemeData(Resources resources, int resID) {
+            this(resources, resID, null);
+        }
+
+        public ThemeData(Resources resources, int resID, Context context) {
             mResources = resources;
             mResID = resID;
+            mContext = context;
         }
 
         Drawable loadPaddedDrawable() {
