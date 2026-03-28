@@ -271,7 +271,7 @@ public class IconProvider {
     public void updateSystemState() {
         String iconPackState = "";
         try {
-            String packPkg = mContext.getResources().getIconPackPackage();
+            String packPkg = AxIconsHelper.getIconPackPackage(mContext);
             if (packPkg != null && !packPkg.isEmpty()) {
                 iconPackState = "," + packPkg;
             }

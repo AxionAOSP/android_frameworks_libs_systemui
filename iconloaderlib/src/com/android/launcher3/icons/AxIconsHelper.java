@@ -16,8 +16,12 @@
 
 package com.android.launcher3.icons;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.res.ThemeEngine;
+import android.graphics.Bitmap;
 import android.graphics.drawable.AdaptiveIconDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.provider.Settings;
@@ -41,9 +45,65 @@ public class AxIconsHelper {
         return !STYLE_AOSP.equals(style);
     }
 
+    public static boolean hasActiveIconPack(@Nullable Context context) {
+        try {
+            ThemeEngine engine = ThemeEngine.getInstance(context);
+            return engine != null && engine.hasActiveIconPack();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    @Nullable
+    public static String getIconPackPackage(@Nullable Context context) {
+        try {
+            ThemeEngine engine = ThemeEngine.getInstance(context);
+            return engine != null ? engine.getIconPackPackage() : null;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    @Nullable
+    public static Drawable loadIconPackDrawable(@Nullable Context context,
+            @NonNull ComponentName component, int density) {
+        if (context == null) return null;
+        try {
+            ThemeEngine engine = ThemeEngine.getInstance(context);
+            if (engine == null) return null;
+
+            Drawable globalIcon = engine.getIconPackDrawable(component, density);
+            if (globalIcon != null) {
+                return wrapAsFullBleed(context, globalIcon, engine.getIconPackPackage());
+            }
+        } catch (Throwable t) {
+        }
+        return null;
+    }
+
+    @NonNull
+    private static Drawable wrapAsFullBleed(@NonNull Context context,
+            @NonNull Drawable icon, @Nullable String iconPackPackage) {
+        if (icon instanceof BitmapDrawable) {
+            Bitmap bitmap = ((BitmapDrawable) icon).getBitmap();
+            if (bitmap != null) {
+                return new FullBleedBitmapDrawable(
+                        context.getResources(), bitmap, iconPackPackage);
+            }
+        }
+        return icon;
+    }
+
+    public static boolean isIconPackDrawable(@Nullable Drawable drawable) {
+        return drawable instanceof FullBleedBitmapDrawable;
+    }
+
     @NonNull
     public static Drawable wrapIconIfNeeded(@NonNull Context context, @NonNull Drawable icon) {
         if (!isAxIconsEnabled(context)) {
+            return icon;
+        }
+        if (isIconPackDrawable(icon)) {
             return icon;
         }
         if (!(icon instanceof AdaptiveIconDrawable)) {

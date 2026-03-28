@@ -166,8 +166,10 @@ constructor(
         // Create the bitmap first
         val oldBounds = icon.bounds
 
+        val isIconPackIcon = icon is FullBleedBitmapDrawable
+
         var tempIcon: Drawable = icon
-        if (options.isFullBleed && icon is BitmapDrawable) {
+        if (!isIconPackIcon && options.isFullBleed && icon is BitmapDrawable) {
             // If the source is a full-bleed icon, create an adaptive icon by insetting this icon to
             // the extra padding
             var inset = AdaptiveIconDrawable.getExtraInsetFraction()
@@ -178,9 +180,11 @@ constructor(
                     InsetDrawable(icon, inset, inset, inset, inset),
                 )
         }
-        if (options.wrapNonAdaptiveIcon) tempIcon = wrapToAdaptiveIcon(tempIcon, options)
+        if (!isIconPackIcon && options.wrapNonAdaptiveIcon) {
+            tempIcon = wrapToAdaptiveIcon(tempIcon, options)
+        }
 
-        val drawFullBleed = options.drawFullBleed ?: drawFullBleedIcons
+        val drawFullBleed = if (isIconPackIcon) true else options.drawFullBleed ?: drawFullBleedIcons
         val bitmap = drawableToBitmap(tempIcon, drawFullBleed, options)
         icon.bounds = oldBounds
 
@@ -202,7 +206,9 @@ constructor(
             info = icon.getUpdatedBitmapInfo(info, this)
         }
 
-        if (IconProvider.ATLEAST_T && themeController != null) {
+        if (isIconPackIcon) {
+            info = info.copy(themedBitmap = ThemedBitmap.NOT_SUPPORTED)
+        } else if (IconProvider.ATLEAST_T && themeController != null) {
             info =
                 info.copy(
                     themedBitmap =
