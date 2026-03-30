@@ -185,12 +185,12 @@ constructor(
         }
 
         val drawFullBleed = if (isIconPackIcon) true else options.drawFullBleed ?: drawFullBleedIcons
-        val bitmap = drawableToBitmap(tempIcon, drawFullBleed, options)
+        val bitmap = drawableToBitmap(tempIcon, drawFullBleed, options, isIconPackIcon)
         icon.bounds = oldBounds
 
         val color = options.extractedColor ?: findDominantColorByHue(bitmap)
         var flagOp = getBitmapFlagOp(options)
-        if (drawFullBleed) {
+        if (drawFullBleed && !isIconPackIcon) {
             flagOp = flagOp.addFlag(BitmapInfo.FLAG_FULL_BLEED)
             bitmap.setHasAlpha(false)
         }
@@ -291,6 +291,7 @@ constructor(
         icon: Drawable,
         drawFullBleed: Boolean,
         options: IconOptions,
+        isIconPackIcon: Boolean = false,
     ): Bitmap {
         if (icon is AdaptiveIconDrawable) {
             // We are ignoring KEY_SHADOW_DISTANCE because regular icons ignore this at the
@@ -312,7 +313,7 @@ constructor(
                         shadowGenerator.addPathShadow(icon.iconMask, canvas)
                     if (icon is Extender) icon.drawForPersistence()
 
-                    if (drawFullBleed) {
+                    if (drawFullBleed && !isIconPackIcon) {
                         drawColor(Color.BLACK)
                         icon.background?.draw(canvas)
                         icon.foreground?.draw(canvas)
@@ -332,7 +333,7 @@ constructor(
             iconToDraw.setBounds(0, 0, iconBitmapSize, iconBitmapSize)
 
             return createBitmap(options) { canvas, bitmap ->
-                if (drawFullBleed) canvas.drawColor(Color.BLACK)
+                if (drawFullBleed && !isIconPackIcon) canvas.drawColor(Color.BLACK)
                 iconToDraw.draw(canvas)
 
                 if (options.addShadows && bitmap != null && !drawFullBleed) {
