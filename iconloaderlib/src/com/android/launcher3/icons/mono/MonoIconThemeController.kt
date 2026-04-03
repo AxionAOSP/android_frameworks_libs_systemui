@@ -24,6 +24,7 @@ import android.graphics.Bitmap.Config.HARDWARE
 import android.graphics.BlendMode.SRC_IN
 import android.graphics.BlendModeColorFilter
 import android.graphics.Canvas
+import android.graphics.Path
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.AdaptiveIconDrawable.getExtraInsetFraction
 import android.graphics.drawable.BitmapDrawable
@@ -33,6 +34,7 @@ import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
 import com.android.launcher3.Flags
+import com.android.launcher3.icons.AxIconsHelper
 import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.ClockDrawableWrapper.ClockAnimationInfo
@@ -73,19 +75,25 @@ class MonoIconThemeController(
             }
         }
 
+        val axIconsEnabled = AxIconsHelper.isAxIconsEnabled(factory.context)
+        val padding = if (axIconsEnabled) AxIconsHelper.getPaddingInPixels(factory.context) else 0
+
         val mono = icon.monochrome
         if (mono != null) {
+            val monoBitmap = InsetDrawable(mono, -getExtraInsetFraction())
             return MonoThemedBitmap(
-                InsetDrawable(mono, -getExtraInsetFraction()).toAlphaBitmap(factory.iconBitmapSize),
+                if (axIconsEnabled) monoBitmap.toCircularAlphaBitmap(factory.iconBitmapSize, padding)
+                else monoBitmap.toAlphaBitmap(factory.iconBitmapSize, padding),
                 colorProvider,
             )
         }
 
-        if (Flags.forceMonochromeAppIcons() && shouldForceThemeIcon) {
+        if ((Flags.forceMonochromeAppIcons() || axIconsEnabled) && shouldForceThemeIcon) {
             val monoFactory = MonochromeIconFactory(info.icon.width)
             val wrappedIcon = monoFactory.wrap(icon)
             return MonoThemedBitmap(
-                wrappedIcon.toAlphaBitmap(factory.iconBitmapSize),
+                if (axIconsEnabled) wrappedIcon.toCircularAlphaBitmap(factory.iconBitmapSize, padding)
+                else wrappedIcon.toAlphaBitmap(factory.iconBitmapSize, padding),
                 colorProvider,
                 monoFactory.luminanceDiff,
             )
@@ -94,10 +102,21 @@ class MonoIconThemeController(
         return ThemedBitmap.NOT_SUPPORTED
     }
 
-    private fun Drawable.toAlphaBitmap(size: Int): Bitmap {
+    private fun Drawable.toAlphaBitmap(size: Int, padding: Int = 0): Bitmap {
         val result = Bitmap.createBitmap(size, size, ALPHA_8)
-        setBounds(0, 0, size, size)
+        setBounds(padding, padding, size - padding, size - padding)
         draw(Canvas(result))
+        return result
+    }
+
+    private fun Drawable.toCircularAlphaBitmap(size: Int, padding: Int): Bitmap {
+        val result = Bitmap.createBitmap(size, size, ALPHA_8)
+        val canvas = Canvas(result)
+        canvas.clipPath(Path().apply {
+            addCircle(size / 2f, size / 2f, size / 2f - padding, Path.Direction.CW)
+        })
+        setBounds(padding, padding, size - padding, size - padding)
+        draw(canvas)
         return result
     }
 
