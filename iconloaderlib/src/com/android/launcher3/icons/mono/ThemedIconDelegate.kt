@@ -21,7 +21,6 @@ import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.Rect
-import com.android.launcher3.icons.AxIconsHelper
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.FastBitmapDrawable
 import com.android.launcher3.icons.FastBitmapDrawableDelegate
@@ -29,7 +28,7 @@ import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory
 import com.android.launcher3.icons.GraphicsUtils.getColorMultipliedFilter
 import com.android.launcher3.icons.GraphicsUtils.resizeToContentSize
 import com.android.launcher3.icons.IconShape
-import com.android.launcher3.icons.R
+import com.android.launcher3.icons.ThemedIconSettings
 
 /** Drawing delegate handle monochrome themed app icons */
 class ThemedIconDelegate(
@@ -87,20 +86,11 @@ class ThemedIconDelegate(
         /** Get an int array representing background and foreground colors for themed icons */
         @JvmStatic
         fun getColors(context: Context): IntArray {
-            val res = context.resources
-            return if (AxIconsHelper.isAxIconsEnabled(context)) {
-                intArrayOf(
-                    res.getColor(R.color.ax_themed_icon_background_color),
-                    res.getColor(R.color.ax_themed_icon_color),
-                    res.getColor(R.color.ax_themed_icon_adaptive_background_color),
-                )
-            } else {
-                intArrayOf(
-                    res.getColor(R.color.themed_icon_background_color),
-                    res.getColor(R.color.themed_icon_color),
-                    res.getColor(R.color.themed_icon_adaptive_background_color),
-                )
-            }
+            return intArrayOf(
+                ThemedIconSettings.getBackgroundColor(context),
+                ThemedIconSettings.getForegroundColor(context),
+                ThemedIconSettings.getAdaptiveBackgroundColor(context),
+            )
         }
     }
 }

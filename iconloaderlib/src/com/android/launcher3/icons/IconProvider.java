@@ -216,7 +216,7 @@ public class IconProvider {
                         ta.recycle();
                         return monoId == ID_NULL ? drawable
                                 : new AdaptiveIconDrawable(aid.getBackground(), aid.getForeground(),
-                                        new ThemeData(td.mResources, monoId, mContext).loadPaddedDrawable());
+                                        new ThemeData(td.mResources, monoId).loadPaddedDrawable());
                     }
                 }
                 return drawable;
@@ -269,15 +269,8 @@ public class IconProvider {
      * and system-version.
      */
     public void updateSystemState() {
-        String iconPackState = "";
-        try {
-            String packPkg = AxIconsHelper.getIconPackPackage(mContext);
-            if (packPkg != null && !packPkg.isEmpty()) {
-                iconPackState = "," + packPkg;
-            }
-        } catch (Exception ignored) { }
         mSystemState = mContext.getResources().getConfiguration().getLocales().toLanguageTags()
-                + "," + Build.VERSION.SDK_INT + iconPackState;
+                + "," + Build.VERSION.SDK_INT + ThemedIconSettings.getState(mContext);
     }
 
     /**

@@ -33,8 +33,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
-import com.android.launcher3.Flags
-import com.android.launcher3.icons.AxIconsHelper
+import com.android.launcher3.icons.ThemedIconSettings
 import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.ClockDrawableWrapper.ClockAnimationInfo
@@ -75,25 +74,22 @@ class MonoIconThemeController(
             }
         }
 
-        val axIconsEnabled = AxIconsHelper.isAxIconsEnabled(factory.context)
-        val padding = if (axIconsEnabled) AxIconsHelper.getPaddingInPixels(factory.context) else 0
+        val padding = ThemedIconSettings.getIconInsetInPixels(factory.context, factory.iconBitmapSize)
 
         val mono = icon.monochrome
         if (mono != null) {
             val monoBitmap = InsetDrawable(mono, -getExtraInsetFraction())
             return MonoThemedBitmap(
-                if (axIconsEnabled) monoBitmap.toCircularAlphaBitmap(factory.iconBitmapSize, padding)
-                else monoBitmap.toAlphaBitmap(factory.iconBitmapSize, padding),
+                monoBitmap.toAlphaBitmap(factory.iconBitmapSize, padding),
                 colorProvider,
             )
         }
 
-        if ((Flags.forceMonochromeAppIcons() || axIconsEnabled) && shouldForceThemeIcon) {
+        if (shouldForceThemeIcon) {
             val monoFactory = MonochromeIconFactory(info.icon.width)
             val wrappedIcon = monoFactory.wrap(icon)
             return MonoThemedBitmap(
-                if (axIconsEnabled) wrappedIcon.toCircularAlphaBitmap(factory.iconBitmapSize, padding)
-                else wrappedIcon.toAlphaBitmap(factory.iconBitmapSize, padding),
+                wrappedIcon.toCircularAlphaBitmap(factory.iconBitmapSize, padding),
                 colorProvider,
                 monoFactory.luminanceDiff,
             )
@@ -103,21 +99,34 @@ class MonoIconThemeController(
     }
 
     private fun Drawable.toAlphaBitmap(size: Int, padding: Int = 0): Bitmap {
-        val result = Bitmap.createBitmap(size, size, ALPHA_8)
-        setBounds(padding, padding, size - padding, size - padding)
-        draw(Canvas(result))
-        return result
+        val bmp = Bitmap.createBitmap(size, size, ALPHA_8)
+        val canvas = Canvas(bmp)
+        if (padding > 0) {
+            val s = (size - 2f * padding) / size
+            canvas.save()
+            canvas.scale(s, s, size / 2f, size / 2f)
+        }
+        setBounds(0, 0, size, size)
+        draw(canvas)
+        if (padding > 0) canvas.restore()
+        return bmp
     }
 
-    private fun Drawable.toCircularAlphaBitmap(size: Int, padding: Int): Bitmap {
-        val result = Bitmap.createBitmap(size, size, ALPHA_8)
-        val canvas = Canvas(result)
+    private fun Drawable.toCircularAlphaBitmap(size: Int, padding: Int = 0): Bitmap {
+        val bmp = Bitmap.createBitmap(size, size, ALPHA_8)
+        val canvas = Canvas(bmp)
+        canvas.save()
+        if (padding > 0) {
+            val s = (size - 2f * padding) / size
+            canvas.scale(s, s, size / 2f, size / 2f)
+        }
         canvas.clipPath(Path().apply {
-            addCircle(size / 2f, size / 2f, size / 2f - padding, Path.Direction.CW)
+            addCircle(size / 2f, size / 2f, size / 2f, Path.Direction.CW)
         })
-        setBounds(padding, padding, size - padding, size - padding)
+        setBounds(0, 0, size, size)
         draw(canvas)
-        return result
+        canvas.restore()
+        return bmp
     }
 
     override fun decode(
@@ -163,8 +172,9 @@ class MonoIconThemeController(
         originalIcon.mutate()
         originalIcon.monochrome?.let {
             val colors = colorProvider(context)
-            it.setTint(colors[1])
-            return@createThemedAdaptiveIcon AdaptiveIconDrawable(ColorDrawable(colors[0]), it)
+            val monoDrawable = InsetDrawable(it.mutate(), ThemedIconSettings.getIconInsetFraction(context))
+            monoDrawable.setTint(colors[1])
+            return@createThemedAdaptiveIcon AdaptiveIconDrawable(ColorDrawable(colors[0]), monoDrawable)
         }
 
         val themedBitmap = info?.themedBitmap as? MonoThemedBitmap ?: return originalIcon
