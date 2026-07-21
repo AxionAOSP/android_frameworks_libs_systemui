@@ -24,7 +24,6 @@ import android.graphics.Paint
 import android.graphics.RenderEffect
 import android.graphics.RuntimeShader
 import android.graphics.Shader
-import android.hardware.HardwareBuffer
 import android.util.Log
 import android.util.SizeF
 import androidx.core.graphics.createBitmap
@@ -81,23 +80,7 @@ class SnowEffect(
         Paint().also { it.shader = snowConfig.accumulatedSnowResultShader }
 
     private val snowFlakeSamplesBuffer: FrameBuffer =
-        if (
-            HardwareBuffer.isSupported(
-                SNOW_FLAKE_SAMPLES_BUFFER_WIDTH,
-                SNOW_FLAKE_SAMPLES_BUFFER_HEIGHT,
-                HardwareBuffer.RGB_888,
-                1,
-                HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE or HardwareBuffer.USAGE_GPU_COLOR_OUTPUT,
-            )
-        ) {
-            FrameBuffer(
-                SNOW_FLAKE_SAMPLES_BUFFER_WIDTH,
-                SNOW_FLAKE_SAMPLES_BUFFER_HEIGHT,
-                HardwareBuffer.RGB_888,
-            )
-        } else {
-            FrameBuffer(SNOW_FLAKE_SAMPLES_BUFFER_WIDTH, SNOW_FLAKE_SAMPLES_BUFFER_HEIGHT)
-        }
+        FrameBuffer(SNOW_FLAKE_SAMPLES_BUFFER_WIDTH, SNOW_FLAKE_SAMPLES_BUFFER_HEIGHT)
 
     private val snowFlakeSamplesPaint = Paint().also { it.shader = snowConfig.snowFlakeSamples }
 
