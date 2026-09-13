@@ -22,6 +22,7 @@ android_library {
     min_sdk_version: "31",
     static_libs: [
         "androidx.core_core",
+        "ax_icon_loader",
         "com_android_launcher3_flags_lib",
         "com_android_systemui_shared_flags_lib",
     ],
@@ -43,6 +44,7 @@ android_library {
     min_sdk_version: "31",
     static_libs: [
         "androidx.core_core",
+        "ax_icon_loader",
         "com_android_launcher3_flags_lib",
         "com_android_systemui_shared_flags_lib",
     ],

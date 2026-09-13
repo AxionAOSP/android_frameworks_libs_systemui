@@ -32,6 +32,7 @@ import android.os.UserHandle
 import android.util.SparseArray
 import androidx.annotation.ColorInt
 import androidx.annotation.IntDef
+import com.android.axion.iconloader.FullBleedBitmapDrawable
 import com.android.launcher3.icons.BitmapInfo.Extender
 import com.android.launcher3.icons.ColorExtractor.findDominantColorByHue
 import com.android.launcher3.icons.GraphicsUtils.generateIconShape
@@ -152,7 +153,7 @@ constructor(
      * @return a bitmap suitable for displaying as an icon at various system UIs.
      */
     @JvmOverloads
-    fun createBadgedIconBitmap(icon: Drawable?, options: IconOptions = IconOptions()): BitmapInfo {
+    open fun createBadgedIconBitmap(icon: Drawable?, options: IconOptions = IconOptions()): BitmapInfo {
         if (icon == null) {
             return BitmapInfo(
                 icon =

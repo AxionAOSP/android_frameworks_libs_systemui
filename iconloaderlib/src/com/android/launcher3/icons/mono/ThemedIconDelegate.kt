@@ -27,8 +27,8 @@ import com.android.launcher3.icons.FastBitmapDrawableDelegate
 import com.android.launcher3.icons.FastBitmapDrawableDelegate.DelegateFactory
 import com.android.launcher3.icons.GraphicsUtils.getColorMultipliedFilter
 import com.android.launcher3.icons.GraphicsUtils.resizeToContentSize
+import com.android.axion.iconloader.ThemedIconSettings
 import com.android.launcher3.icons.IconShape
-import com.android.launcher3.icons.ThemedIconSettings
 
 /** Drawing delegate handle monochrome themed app icons */
 class ThemedIconDelegate(

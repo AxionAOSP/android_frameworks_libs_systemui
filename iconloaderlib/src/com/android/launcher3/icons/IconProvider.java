@@ -41,6 +41,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.BuildCompat;
 
+import com.android.axion.iconloader.ThemedIconSettings;
 import com.android.launcher3.icons.cache.CachingLogic;
 import com.android.launcher3.util.ComponentKey;
 

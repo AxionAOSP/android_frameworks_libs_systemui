@@ -33,7 +33,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.InsetDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
-import com.android.launcher3.icons.ThemedIconSettings
+import com.android.axion.iconloader.ThemedIconSettings
 import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.ClockDrawableWrapper.ClockAnimationInfo
